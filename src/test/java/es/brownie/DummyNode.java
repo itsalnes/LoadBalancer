@@ -1,21 +1,36 @@
 package es.brownie;
 
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import es.brownie.common.MyHttpServer;
+import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DummyNode extends MyHttpServer implements HttpHandler {
+/** Increments a counter and returns 200 */
+public class DummyNode {
 
     private AtomicInteger counter = new AtomicInteger(0);
 
-    private HttpHandler handler ;
+    private HttpServer server;
 
     public DummyNode(int port) throws IOException {
-        super(port, null);
+        server = HttpServer.create(new InetSocketAddress(port), 0);
+
+        final HttpHandler handler = exchange -> {
+            counter.incrementAndGet();
+        };
+
+        server.createContext("/", handler);
+        server.setExecutor(null);
     }
 
+    public void start() {
+        server.start();
+    }
+
+    public void stop() {
+        server.stop(100);
+    }
 
 }
