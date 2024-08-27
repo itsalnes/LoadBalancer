@@ -22,7 +22,7 @@ public class CommandController {
     public CommandController(INodeManager nodeManager) throws IOException {
         this.nodeManager = nodeManager;
 
-        server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server = HttpServer.create(new InetSocketAddress(9090), 0);
         server.createContext("/command", new CommandRequestHandler());
         server.setExecutor(null); // Only one command at the time
         server.start();

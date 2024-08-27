@@ -14,7 +14,7 @@ public class AbstractLoadBalancerTest {
     public void registerNodeOnLoadBalancer(int port) {
         try {
             HttpRequest request = HttpRequest
-                    .newBuilder(new URI("http://localhost:8080/command/addNode"))
+                    .newBuilder(new URI("http://localhost:9090/command/addNode"))
                     .POST(ofString("localhost:" + port))
                     .build();
 

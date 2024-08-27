@@ -1,5 +1,6 @@
 package es.brownie;
 
+import es.brownie.controller.CommandController;
 import es.brownie.controller.EntryController;
 import es.brownie.service.BalancerService;
 import es.brownie.strategies.IBalancingStrategy;
@@ -13,6 +14,8 @@ public class LoadBalancerApplication {
     private final BalancerService balancerService = new BalancerService(new SameTotalRequestsStrategy());
 
     private final EntryController entryController = new EntryController(balancerService);
+
+    private final CommandController commandController = new CommandController(balancerService);
 
     public LoadBalancerApplication() throws IOException, URISyntaxException {
     }

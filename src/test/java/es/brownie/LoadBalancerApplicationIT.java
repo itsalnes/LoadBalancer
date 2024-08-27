@@ -54,11 +54,17 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
     }
 
     @AfterEach
-    void afterEach() {
-        app.stop();
+    void afterEach() throws InterruptedException {
+
+        if(app != null) {
+            app.stop();
+        }
+
         node1.stop();
         node2.stop();
         node3.stop();
+
+        Thread.sleep(1000);
     }
 
     @Test
@@ -93,13 +99,7 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
     @Test
     void sameConcurrentLoadStrategy() throws IOException, URISyntaxException, InterruptedException {
-
-        LoadBalancerApplication app = new LoadBalancerApplication();
         app.setBalancingStrategy(new SameConcurrentLoadStrategy());
-
-        new Thread(app::start).start();
-
-        Thread.sleep(1000);
 
         IntStream.range(0, 200).parallel().forEach(i -> sendHttpRequest());
 
