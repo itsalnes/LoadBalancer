@@ -10,7 +10,7 @@ public class SameTotalRequestsStrategy implements IBalancingStrategy {
     @Override
     public ServerNode chooseNode(List<ServerNode> nodes) {
 
-        return nodes.stream().min(
+        return nodes.stream().filter(ServerNode::isHealthy).min(
                 Comparator.comparingInt(n -> n.getCounter().get())
         ).orElseThrow();
     }

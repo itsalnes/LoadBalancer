@@ -98,6 +98,30 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
     }
 
+
+    @Test
+    void asNodesCrashEverythingStillWorks() {
+
+        IntStream.range(0, 202).parallel().forEach(i -> {
+                    if (i == 50) {
+                        node1.stop();
+                    } else if (i == 100) {
+                        node2.stop();
+                    } else {
+                        sendHttpRequest();
+                    }
+                }
+        );
+
+        LOGGER.info("Node 1 received " + node1.getCounter().get() + " requests");
+        LOGGER.info("Node 2 received " + node2.getCounter().get() + " requests");
+        LOGGER.info("Node 3 received " + node3.getCounter().get() + " requests");
+
+        assertTrue(node3.getCounter().get() >= node2.getCounter().get());
+        assertTrue(node2.getCounter().get() >= node1.getCounter().get());
+        assertEquals(200, node1.getCounter().get() + node2.getCounter().get() + node3.getCounter().get());
+    }
+
     /* --- */
 
     @BeforeEach

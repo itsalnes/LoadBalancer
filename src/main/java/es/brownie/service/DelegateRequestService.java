@@ -1,6 +1,7 @@
 package es.brownie.service;
 
 import com.sun.net.httpserver.HttpExchange;
+import es.brownie.exceptions.ConnectionFailedException;
 import es.brownie.model.ServerNode;
 
 import java.io.IOException;
@@ -15,21 +16,27 @@ public class DelegateRequestService {
 
     private final HttpClient client = HttpClient.newBuilder().build();
 
-    public void handle(ServerNode node, HttpExchange exchange) throws IOException, InterruptedException {
+    public void handle(ServerNode node, HttpExchange exchange)  {
 
         HttpRequest request = HttpRequest.newBuilder(node.getUri()).GET().build();
 
         LOGGER.info("Sending message to " + node);
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        try{
 
-        LOGGER.info("Received response from " + node);
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        exchange.sendResponseHeaders(response.statusCode(), response.body().length());
-        exchange.getResponseBody().write(response.body().getBytes());
-        exchange.close();
+            LOGGER.info("Received response from " + node);
 
-        LOGGER.info("Repplied to origin of request to " + node);
+            exchange.sendResponseHeaders(response.statusCode(), response.body().length());
+            exchange.getResponseBody().write(response.body().getBytes());
+            exchange.close();
+
+            LOGGER.info("Replied to origin of request to " + node);
+
+        }catch(Exception e) {
+            throw new ConnectionFailedException(e);
+        }
 
     }
 

@@ -2,6 +2,7 @@ package es.brownie.service;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import es.brownie.exceptions.ConnectionFailedException;
 import es.brownie.interfaces.INodeManager;
 import es.brownie.model.ServerNode;
 import es.brownie.strategies.IBalancingStrategy;
@@ -41,8 +42,10 @@ public class BalancerService implements HttpHandler, INodeManager {
             strategy.afterResponse(choice);
 
             LOGGER.info("Message to " + choice.getUri().toString() + " handled!");
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (ConnectionFailedException e) {
+            LOGGER.warning("Connection to " + choice + " failed, retrying somewhere else");
+            choice.setHealthy(false);
+            handle(exchange);
         }
 
     }

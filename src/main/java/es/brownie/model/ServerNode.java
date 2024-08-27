@@ -2,13 +2,14 @@ package es.brownie.model;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ServerNode {
 
     private final URI uri;
 
-    private volatile boolean healthy = true;
+    private final AtomicBoolean healthy = new AtomicBoolean(true);
 
     /**
      * A counter for balancing strategies to use if needed, it can represent either total requests or concurrent requests
@@ -43,6 +44,11 @@ public class ServerNode {
     }
 
     public boolean isHealthy() {
-        return healthy;
+        return healthy.get();
     }
+
+    public void setHealthy(boolean value) {
+        healthy.set(value);
+    }
+
 }

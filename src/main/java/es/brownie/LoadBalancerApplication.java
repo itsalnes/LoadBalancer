@@ -26,6 +26,7 @@ public class LoadBalancerApplication {
 
     void stop() {
         entryController.stop();
+        commandController.stop();
     }
 
     /* --- */
