@@ -18,18 +18,22 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class LoadBalancerApplicationTest {
+class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
-    private final static Logger LOGGER = Logger.getLogger(LoadBalancerApplicationTest.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(LoadBalancerApplicationIT.class.getName());
 
     private DummyNode node1;
     private DummyNode node2;
 
     private DummyNode node3;
 
-    @BeforeEach
-    void setUp() throws IOException {
 
+    private LoadBalancerApplication app;
+
+    @BeforeEach
+    void setUp() throws IOException, URISyntaxException, InterruptedException {
+
+        // We simulate nodes of different capacity
         node1 = new DummyNode(9001, 50);
         node2 = new DummyNode(9002, 100);
         node3 = new DummyNode(9003, 150);
@@ -38,21 +42,27 @@ class LoadBalancerApplicationTest {
         new Thread(node2::start).start();
         new Thread(node3::start).start();
 
+        app = new LoadBalancerApplication();
+
+        new Thread(app::start).start();
+        Thread.sleep(250);
+
+        registerNodeOnLoadBalancer(9001);
+        registerNodeOnLoadBalancer(9002);
+        registerNodeOnLoadBalancer(9003);
+
     }
 
     @AfterEach
     void afterEach() {
+        app.stop();
         node1.stop();
         node2.stop();
         node3.stop();
     }
 
     @Test
-    void simpleTest() throws IOException, URISyntaxException, InterruptedException {
-
-        LoadBalancerApplication app = new LoadBalancerApplication();
-
-        new Thread(app::start).start();
+    void simpleTest() {
 
         sendHttpRequest();
         sendHttpRequest();
@@ -62,18 +72,10 @@ class LoadBalancerApplicationTest {
         assertEquals(1, node2.getCounter().get());
         assertEquals(1, node3.getCounter().get());
 
-        app.stop();
-
     }
 
     @Test
-    void harderTest() throws IOException, URISyntaxException, InterruptedException {
-
-        LoadBalancerApplication app = new LoadBalancerApplication();
-
-        new Thread(app::start).start();
-
-        Thread.sleep(1000);
+    void harderTest() {
 
         IntStream.range(0, 99).parallel().forEach(i -> sendHttpRequest());
 
@@ -99,7 +101,7 @@ class LoadBalancerApplicationTest {
 
         Thread.sleep(1000);
 
-        IntStream.range(0, 99).parallel().forEach(i -> sendHttpRequest());
+        IntStream.range(0, 200).parallel().forEach(i -> sendHttpRequest());
 
         LOGGER.info("Node 1 received " + node1.getCounter().get() + " requests");
         LOGGER.info("Node 2 received " + node2.getCounter().get() + " requests");
@@ -112,12 +114,12 @@ class LoadBalancerApplicationTest {
 
     }
 
-
     /* --- */
 
     private HttpClient client = HttpClient.newBuilder().build();
 
     private AtomicInteger atomicInteger = new AtomicInteger();
+
 
     private void sendHttpRequest() {
 

@@ -14,8 +14,12 @@ public class ServerNode {
      */
     private final AtomicInteger counter = new AtomicInteger(0);
 
-    public ServerNode(String uri) throws URISyntaxException {
-        this.uri = new URI(uri);
+    public ServerNode(String uri) {
+        try {
+            this.uri = new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /* --- */
