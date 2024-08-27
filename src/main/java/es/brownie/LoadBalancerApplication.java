@@ -1,16 +1,34 @@
 package es.brownie;
 
-import es.brownie.controller.LoadBalancerEntryController;
-import es.brownie.service.LoadBalancerService;
+import es.brownie.controller.EntryController;
+import es.brownie.service.BalancerService;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class LoadBalancerApplication {
-    public static void main(String[] args) throws IOException {
 
-        var service = new LoadBalancerService();
+    private final BalancerService balancerService = new BalancerService();
 
-        new LoadBalancerEntryController(service);
+    private final EntryController entryController =  new EntryController(balancerService);
+
+    public LoadBalancerApplication() throws IOException, URISyntaxException {
+    }
+
+    void start() {
+        entryController.start();
+    }
+
+    void stop() {
+        entryController.stop();
+    }
+
+    /* --- */
+
+    public static void main(String[] args) throws IOException, URISyntaxException {
+        var app = new LoadBalancerApplication();
+        app.start();
 
     }
+
 }
