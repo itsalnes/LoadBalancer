@@ -24,48 +24,9 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
     private DummyNode node1;
     private DummyNode node2;
-
     private DummyNode node3;
 
-
     private LoadBalancerApplication app;
-
-    @BeforeEach
-    void setUp() throws IOException, URISyntaxException, InterruptedException {
-
-        // We simulate nodes of different capacity
-        node1 = new DummyNode(9001, 50);
-        node2 = new DummyNode(9002, 100);
-        node3 = new DummyNode(9003, 150);
-
-        new Thread(node1::start).start();
-        new Thread(node2::start).start();
-        new Thread(node3::start).start();
-
-        app = new LoadBalancerApplication();
-
-        new Thread(app::start).start();
-        Thread.sleep(250);
-
-        registerNodeOnLoadBalancer(9001);
-        registerNodeOnLoadBalancer(9002);
-        registerNodeOnLoadBalancer(9003);
-
-    }
-
-    @AfterEach
-    void afterEach() throws InterruptedException {
-
-        if(app != null) {
-            app.stop();
-        }
-
-        node1.stop();
-        node2.stop();
-        node3.stop();
-
-        Thread.sleep(1000);
-    }
 
     @Test
     void simpleTest() {
@@ -98,7 +59,7 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
     }
 
     @Test
-    void sameConcurrentLoadStrategy() throws IOException, URISyntaxException, InterruptedException {
+    void sameConcurrentLoadStrategy() {
         app.setBalancingStrategy(new SameConcurrentLoadStrategy());
 
         IntStream.range(0, 200).parallel().forEach(i -> sendHttpRequest());
@@ -112,6 +73,68 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
         app.stop();
 
+    }
+
+    @Test
+    void asNodesAreDeregisteredFromTheSystemEverythingStillWorks() {
+
+        IntStream.range(0, 202).parallel().forEach(i -> {
+                    if (i == 50) {
+                        deregisterNodeOnLoadBalancer(9001);
+                    } else if (i == 100) {
+                        deregisterNodeOnLoadBalancer(9002);
+                    } else {
+                        sendHttpRequest();
+                    }
+                }
+        );
+
+        LOGGER.info("Node 1 received " + node1.getCounter().get() + " requests");
+        LOGGER.info("Node 2 received " + node2.getCounter().get() + " requests");
+        LOGGER.info("Node 3 received " + node3.getCounter().get() + " requests");
+
+        assertTrue(node3.getCounter().get() >= node2.getCounter().get());
+        assertTrue(node2.getCounter().get() >= node1.getCounter().get());
+
+    }
+
+    /* --- */
+
+    @BeforeEach
+    void setUp() throws IOException, URISyntaxException, InterruptedException {
+
+        // We simulate nodes of different capacity
+        node1 = new DummyNode(9001, 50);
+        node2 = new DummyNode(9002, 100);
+        node3 = new DummyNode(9003, 150);
+
+        new Thread(node1::start).start();
+        new Thread(node2::start).start();
+        new Thread(node3::start).start();
+
+        app = new LoadBalancerApplication();
+
+        new Thread(app::start).start();
+        Thread.sleep(250);
+
+        registerNodeOnLoadBalancer(9001);
+        registerNodeOnLoadBalancer(9002);
+        registerNodeOnLoadBalancer(9003);
+
+    }
+
+    @AfterEach
+    void afterEach() throws InterruptedException {
+
+        if (app != null) {
+            app.stop();
+        }
+
+        node1.stop();
+        node2.stop();
+        node3.stop();
+
+        Thread.sleep(1000);
     }
 
     /* --- */

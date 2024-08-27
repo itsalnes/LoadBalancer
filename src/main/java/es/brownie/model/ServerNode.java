@@ -8,6 +8,8 @@ public class ServerNode {
 
     private final URI uri;
 
+    private volatile boolean healthy = true;
+
     /**
      * A counter for balancing strategies to use if needed, it can represent either total requests or concurrent requests
      * and this might not be the right place to store it
@@ -38,5 +40,9 @@ public class ServerNode {
                 "uri=" + uri +
                 ", counter=" + counter +
                 '}';
+    }
+
+    public boolean isHealthy() {
+        return healthy;
     }
 }

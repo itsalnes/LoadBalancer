@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import static org.mockito.Mockito.*;
 
@@ -28,13 +27,13 @@ class CommandControllerTest extends AbstractLoadBalancerTest {
     }
 
     @Test
-    void addNode() throws URISyntaxException, IOException, InterruptedException {
+    void addNodeHappyPath() {
         registerNodeOnLoadBalancer(9001);
         verify(nodeManager, times(1)).addNode("localhost:9001");
     }
 
     @Test
-    void removeNode() throws URISyntaxException, IOException, InterruptedException {
+    void removeNodeHappyPath() {
         deregisterNodeOnLoadBalancer(9001);
         verify(nodeManager, times(1)).removeNode("localhost:9001");
     }

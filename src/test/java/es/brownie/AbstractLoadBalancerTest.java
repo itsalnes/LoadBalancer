@@ -28,7 +28,7 @@ public class AbstractLoadBalancerTest {
     public void deregisterNodeOnLoadBalancer(int port) {
         try {
             HttpRequest request = HttpRequest
-                    .newBuilder(new URI("http://localhost:8080/command/removeNode"))
+                    .newBuilder(new URI("http://localhost:9090/command/removeNode"))
                     .POST(ofString("localhost:" + port))
                     .build();
 
