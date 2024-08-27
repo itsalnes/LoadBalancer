@@ -8,6 +8,10 @@ public class ServerNode {
 
     private final URI uri;
 
+    /**
+     * A counter for balancing strategies to use if needed, it can represent either total requests or concurrent requests
+     * and this might not be the right place to store it
+     */
     private final AtomicInteger counter = new AtomicInteger(0);
 
     public ServerNode(String uri) throws URISyntaxException {

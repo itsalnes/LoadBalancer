@@ -17,14 +17,14 @@ public class DummyNode {
 
     private Random random = new Random();
 
-    public DummyNode(int port) throws IOException {
+    public DummyNode(int port, long averageResponseTime) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
         final HttpHandler handler = exchange -> {
             counter.incrementAndGet();
 
             try {
-                Thread.sleep(random.nextLong(150)); //Simulate a variable response time
+                Thread.sleep(random.nextLong(averageResponseTime * 2)); //Simulate a variable response time
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

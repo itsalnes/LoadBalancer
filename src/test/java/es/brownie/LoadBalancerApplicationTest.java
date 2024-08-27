@@ -1,5 +1,6 @@
 package es.brownie;
 
+import es.brownie.strategies.SameConcurrentLoadStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LoadBalancerApplicationTest {
 
@@ -23,14 +25,18 @@ class LoadBalancerApplicationTest {
     private DummyNode node1;
     private DummyNode node2;
 
+    private DummyNode node3;
+
     @BeforeEach
     void setUp() throws IOException {
 
-        node1 = new DummyNode(9001);
-        node2 = new DummyNode(9002);
+        node1 = new DummyNode(9001, 50);
+        node2 = new DummyNode(9002, 100);
+        node3 = new DummyNode(9003, 150);
 
         new Thread(node1::start).start();
         new Thread(node2::start).start();
+        new Thread(node3::start).start();
 
     }
 
@@ -38,6 +44,7 @@ class LoadBalancerApplicationTest {
     void afterEach() {
         node1.stop();
         node2.stop();
+        node3.stop();
     }
 
     @Test
@@ -49,9 +56,11 @@ class LoadBalancerApplicationTest {
 
         sendHttpRequest();
         sendHttpRequest();
+        sendHttpRequest();
 
         assertEquals(1, node1.getCounter().get());
         assertEquals(1, node2.getCounter().get());
+        assertEquals(1, node3.getCounter().get());
 
         app.stop();
 
@@ -66,10 +75,38 @@ class LoadBalancerApplicationTest {
 
         Thread.sleep(1000);
 
-        IntStream.range(0, 1000).parallel().forEach(i -> sendHttpRequest());
-        assertEquals(500, node1.getCounter().get());
-        assertEquals(500, node2.getCounter().get());
+        IntStream.range(0, 99).parallel().forEach(i -> sendHttpRequest());
 
+        LOGGER.info("Node 1 received " + node1.getCounter().get() + " requests");
+        LOGGER.info("Node 2 received " + node2.getCounter().get() + " requests");
+        LOGGER.info("Node 3 received " + node3.getCounter().get() + " requests");
+
+        assertEquals(33, node1.getCounter().get());
+        assertEquals(33, node2.getCounter().get());
+        assertEquals(33, node3.getCounter().get());
+
+        app.stop();
+
+    }
+
+    @Test
+    void sameConcurrentLoadStrategy() throws IOException, URISyntaxException, InterruptedException {
+
+        LoadBalancerApplication app = new LoadBalancerApplication();
+        app.setBalancingStrategy(new SameConcurrentLoadStrategy());
+
+        new Thread(app::start).start();
+
+        Thread.sleep(1000);
+
+        IntStream.range(0, 99).parallel().forEach(i -> sendHttpRequest());
+
+        LOGGER.info("Node 1 received " + node1.getCounter().get() + " requests");
+        LOGGER.info("Node 2 received " + node2.getCounter().get() + " requests");
+        LOGGER.info("Node 3 received " + node3.getCounter().get() + " requests");
+
+        assertTrue(node1.getCounter().get() >= node2.getCounter().get());
+        assertTrue(node2.getCounter().get() >= node3.getCounter().get());
 
         app.stop();
 
@@ -86,14 +123,11 @@ class LoadBalancerApplicationTest {
 
         try {
 
-
-            HttpRequest request = null;
-
             int incrementAndGet = atomicInteger.incrementAndGet();
 
-            LOGGER.info("Sending request " + incrementAndGet);
+            LOGGER.info("Sending request #" + incrementAndGet);
 
-            request = HttpRequest.newBuilder(new URI("http://localhost:" + 8080)).GET().build();
+            HttpRequest request = HttpRequest.newBuilder(new URI("http://localhost:" + 8080)).GET().build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             assertEquals(200, response.statusCode());
