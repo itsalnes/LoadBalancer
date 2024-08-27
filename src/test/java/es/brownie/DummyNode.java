@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Increments a counter and returns 200 */
+/** Increments a counter and returns 200, takes a random time to reply */
 public class DummyNode {
 
     private final AtomicInteger counter = new AtomicInteger(0);
@@ -24,7 +24,7 @@ public class DummyNode {
             counter.incrementAndGet();
 
             try {
-                Thread.sleep(random.nextLong(150));
+                Thread.sleep(random.nextLong(150)); //Simulate a variable response time
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
