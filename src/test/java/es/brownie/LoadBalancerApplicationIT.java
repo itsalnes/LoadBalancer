@@ -26,7 +26,7 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
     private DummyNode node2;
     private DummyNode node3;
 
-    private LoadBalancerApplication app;
+    private ApplicationContext app;
 
     @Test
     void simpleTest() {
@@ -129,14 +129,14 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
         // We simulate nodes of different capacity
         node1 = new DummyNode(9001, 50);
-        node2 = new DummyNode(9002, 100);
-        node3 = new DummyNode(9003, 150);
+        node2 = new DummyNode(9002, 75);
+        node3 = new DummyNode(9003, 100);
 
         new Thread(node1::start).start();
         new Thread(node2::start).start();
         new Thread(node3::start).start();
 
-        app = new LoadBalancerApplication();
+        app = new ApplicationContext();
 
         new Thread(app::start).start();
         Thread.sleep(250);
@@ -163,10 +163,9 @@ class LoadBalancerApplicationIT extends AbstractLoadBalancerTest {
 
     /* --- */
 
-    private HttpClient client = HttpClient.newBuilder().build();
+    private final HttpClient client = HttpClient.newBuilder().build();
 
-    private AtomicInteger atomicInteger = new AtomicInteger();
-
+    private final AtomicInteger atomicInteger = new AtomicInteger();
 
     private void sendHttpRequest() {
 

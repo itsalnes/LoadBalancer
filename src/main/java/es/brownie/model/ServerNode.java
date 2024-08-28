@@ -19,7 +19,7 @@ public class ServerNode {
 
     public ServerNode(String uri) {
         try {
-            this.uri = new URI(uri);
+            this.uri = new URI("http://" + uri);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

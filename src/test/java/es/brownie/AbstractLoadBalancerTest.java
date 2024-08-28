@@ -9,7 +9,7 @@ import static java.net.http.HttpRequest.BodyPublishers.ofString;
 
 public class AbstractLoadBalancerTest {
 
-    private HttpClient httpClient = HttpClient.newBuilder().build();
+    private final HttpClient httpClient = HttpClient.newBuilder().build();
 
     public void registerNodeOnLoadBalancer(int port) {
         try {
