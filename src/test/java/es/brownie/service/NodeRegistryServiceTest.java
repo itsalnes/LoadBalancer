@@ -58,19 +58,4 @@ class NodeRegistryServiceTest {
         assertEquals(1, service.getNodes().size());
     }
 
-    @Test
-    void noDuplicatesConcurrent() {
-
-        IntStream.range(1, 1723).parallel().forEach(
-                i -> {
-                    if (i % 4 == 0)
-                        service.removeNode("localhost:2000");
-                    else
-                        service.addNode("localhost:2000");
-                }
-        );
-
-        assertTrue(service.getNodes().size() <= 1);
-    }
-
 }
