@@ -9,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class CommandController {
@@ -24,7 +25,7 @@ public class CommandController {
 
         server = HttpServer.create(new InetSocketAddress(9090), 0);
         server.createContext("/command", new CommandRequestHandler());
-        server.setExecutor(null); // Only one command at the time
+        server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();
     }
 
